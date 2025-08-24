@@ -1,0 +1,7 @@
+{
+  "name": "embipos-pos",
+  "slug": "embipos-pos",
+  "android": {
+    "package": "com.anonymous.embipospos"
+  }
+}
