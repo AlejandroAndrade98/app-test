@@ -1,11 +1,8 @@
-import axios from 'axios';
+// src/services/api.ts
+import { http } from '../src/services/http';
 
 const USE_MOCK = process.env.EXPO_PUBLIC_USE_MOCK === '1';
-const baseURL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000';
 
-export const api = axios.create({ baseURL });
-
-/** Mock simple en memoria */
 const mock = {
   products: [
     { id: 1, sku: 'TORT-CHOC', name: 'Torta Chocolate', price: 85000, stock: 4 },
@@ -16,12 +13,11 @@ const mock = {
 
 export async function fetchProducts(q?: string) {
   if (USE_MOCK) {
-    const data = mock.products.filter(p =>
+    return mock.products.filter(p =>
       !q || p.name.toLowerCase().includes(q.toLowerCase()) || p.sku.includes(q));
-    return data;
   }
-  const r = await api.get('/products', { params: { q } });
-  return r.data;
+  const { data } = await http.get('/products', { params: { q } });
+  return data;
 }
 
 export async function createSale(payload: {
@@ -29,15 +25,22 @@ export async function createSale(payload: {
   items: { sku: string; qty: number }[];
 }) {
   if (USE_MOCK) {
-    // Simula “éxito”
     return { saleId: Math.floor(Math.random() * 10000) };
   }
-  const r = await api.post('/sales', payload);
-  return r.data;
+  const { data } = await http.post('/sales', payload);
+  return data;
 }
 
+/** 👇 Corregido: usar /reports/daily y devolver la misma forma que el backend */
 export async function fetchReportToday() {
-  if (USE_MOCK) return [{ method: 'cash', total: 123000 }];
-  const r = await api.get('/reports/today');
-  return r.data;
+  if (USE_MOCK) {
+    return {
+      date: new Date().toISOString().slice(0, 10),
+      range: { from: new Date().toISOString(), to: new Date().toISOString() },
+      sales: { count: 3, sumTotal: 123000, avgTicket: 41000 },
+      byPayment: [{ paymentMethod: 'cash', total: 123000 }],
+    };
+  }
+  const { data } = await http.get('/reports/daily');
+  return data;
 }
