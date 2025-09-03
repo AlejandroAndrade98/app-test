@@ -1,34 +1,30 @@
-// import { http } from './http';
-// import { USE_MOCK } from '../config/api';
-// import { dailyReportMock } from '../mocks/reports.mock';
-// // import { DailyReport } from '../types';
-import { DailyReportSchema, type DailyReport } from "../schemas/report";
-import { RangeReportSchema, type RangeReport } from "../schemas/report";
+// src/services/reports.ts
+import { http } from "../services/http";
+import {
+  DailyReportSchema,
+  RangeReportSchema,
+  type DailyReport,
+  type RangeReport,
+} from "../schemas/reports";
 
-/**
- * Obtener reporte diario (ventas, totales y por método de pago).
- */
 export async function getDailyReport(date?: string): Promise<DailyReport> {
-  const base = process.env.EXPO_PUBLIC_API_BASE ?? "";
-  const url = new URL("/reports/daily", base);
-  if (date) url.searchParams.set("date", date);
-
-  const res = await fetch(url.toString(), { method: "GET" });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-  const json = await res.json();
-  return DailyReportSchema.parse(json);
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.debug("[reports] GET /reports/daily", date ? { date } : {});
+  }
+  const { data } = await http.get("/reports/daily", {
+    params: date ? { date } : undefined,
+  });
+  return DailyReportSchema.parse(data);
 }
 
 export async function getRangeReport(from: string, to: string): Promise<RangeReport> {
-  const base = process.env.EXPO_PUBLIC_API_BASE ?? "";
-  const url = new URL("/reports/range", base);
-  url.searchParams.set("from", from); // 'YYYY-MM-DD'
-  url.searchParams.set("to", to);     // 'YYYY-MM-DD'
-
-  const res = await fetch(url.toString(), { method: "GET" });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-  const json = await res.json();
-  return RangeReportSchema.parse(json);
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.debug("[reports] GET /reports/range", { from, to });
+  }
+  const { data } = await http.get("/reports/range", {
+    params: { from, to },
+  });
+  return RangeReportSchema.parse(data);
 }

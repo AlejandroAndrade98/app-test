@@ -1,45 +1,59 @@
-import { View, Text, ActivityIndicator, Button } from 'react-native';
-import { useDailyReport } from '../../src/hooks/useDailyReport';
-import { money, datetimeLocal } from '../../src/utils/format';
+// app/(tabs)/productos.tsx
+import { View, Text, ActivityIndicator, Pressable } from "react-native";
+import { useEffect, useState } from "react";
+import { fetchProducts } from "@/services/products";
+import type { Product } from "@/types";
 
-export default function Reportes() {
-  const { data, error, loading, refresh } = useDailyReport();
+export default function Productos() {
+  const [data, setData] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const list = await fetchProducts();
+      setData(list);
+    } catch (e: any) {
+      setError(e?.message ?? "Error cargando productos");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { refresh(); }, []);
 
   if (loading) return <ActivityIndicator style={{ marginTop: 24 }} />;
-  if (error) return (
-    <View style={{ padding: 16, gap: 8 }}>
-      <Text style={{ color: 'red' }}>{error}</Text>
-      <Button title="Reintentar" onPress={refresh} />
-    </View>
-  );
-  if (!data) return <Text style={{ padding: 16 }}>Sin datos</Text>;
+
+  if (error) {
+    return (
+      <View style={{ padding: 16 }}>
+        <Text style={{ color: "red", marginBottom: 8 }}>{error}</Text>
+        <Pressable
+          onPress={refresh}
+          style={{ padding: 12, backgroundColor: "#3b82f6", borderRadius: 8 }}
+        >
+          <Text style={{ color: "white", textAlign: "center" }}>REINTENTAR</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
-    <View style={{ padding: 16, gap: 10 }}>
-      <Text style={{ fontSize: 22, fontWeight: '600' }}>
-        Reporte de hoy — {data.date}
+    <View style={{ padding: 16 }}>
+      <Text style={{ fontWeight: "700", fontSize: 18, marginBottom: 8 }}>
+        Productos
       </Text>
-      <Text>Rango: {datetimeLocal(data.range.from)} → {datetimeLocal(data.range.to)}</Text>
 
-      <View>
-        <Text style={{ fontWeight: '600' }}>Totales</Text>
-        <Text>Ventas: {data.sales.count}</Text>
-        <Text>Total: {money(data.sales.sumTotal)}</Text>
-        <Text>Promedio ticket: {money(data.sales.avgTicket)}</Text>
-      </View>
-
-      <View>
-        <Text style={{ fontWeight: '600', marginTop: 8 }}>Por método de pago</Text>
-        {data.byPayment.length === 0 && <Text>No hay ventas</Text>}
-        {data.byPayment.map((p) => (
-          <Text key={p.paymentMethod}>
-            {p.paymentMethod}: {money(p.total)}
+      {data.map((p) => (
+        <View key={p.id} style={{ paddingVertical: 6 }}>
+          <Text>{p.name} — ${p.price}</Text>
+          <Text style={{ opacity: 0.7 }}>
+            SKU: {p.sku} · stock: {p.stock}
           </Text>
-        ))}
-      </View>
-
-      <Button title="Actualizar" onPress={refresh} />
+        </View>
+      ))}
     </View>
   );
 }
-

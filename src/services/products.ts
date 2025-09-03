@@ -9,14 +9,22 @@ import { Product } from '../types';
  */
 export async function fetchProducts(q?: string): Promise<Product[]> {
   if (USE_MOCK) {
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.debug("[products] usando MOCK");
+    }
+    const term = q?.toLowerCase();
     return productsMock.filter(
-      (p) =>
-        !q ||
-        p.name.toLowerCase().includes(q.toLowerCase()) ||
-        p.sku.includes(q)
+      (p) => !term || p.name.toLowerCase().includes(term) || p.sku.includes(q!)
     );
   }
 
-  const { data } = await http.get('/products', { params: { q } });
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.debug("[products] GET /products", q ? { q } : {});
+  }
+  const { data } = await http.get<Product[]>("/products", {
+    params: q ? { q } : undefined,
+  });
   return data;
 }
