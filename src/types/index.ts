@@ -1,9 +1,14 @@
 export type Product = {
-  id: number;
+  id: number | string;
   sku: string;
   name: string;
   price: number;
-  stock: number;
+  stock?: number;
+
+  // Opcionales: dependiendo de cómo guardes en la DB / API
+  image_url?: string;  // snake_case (ej. en Supabase/Postgres)
+  imageUrl?: string;   // camelCase
+  image?: string;      // genérico
 };
 
 export type SaleItemInput = { sku: string; qty: number };
