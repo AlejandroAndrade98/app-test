@@ -1,0 +1,27 @@
+/* app/global.css */
+html, body, #root { height: 100%; background: #0B1220; }
+#root > div, #root > div > div { min-height: 100%; background: #0B1220; }
+
+/* Apaga los grises por defecto de RN Web / React Navigation Web */
+*[style*="background-color: rgb(242, 242, 242)"],
+*[style*="background-color: rgb(216, 216, 216)"],
+*[style*="background: rgb(242, 242, 242)"],
+*[style*="background: rgb(216, 216, 216)"] {
+  background-color: #0B1220 !important;
+  background: #0B1220 !important;
+}
+
+/* Wrappers fijos de la TabBar */
+*:where([style*="position: fixed"][style*="bottom: 0"]) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Tablist accesible */
+[role="tablist"], [role="tablist"] * { background: transparent !important; }
+
+/* Sombra invertida arriba */
+*[style*="box-shadow"][style*="-2px"] {
+  background: transparent !important;
+  box-shadow: none !important;
+}
