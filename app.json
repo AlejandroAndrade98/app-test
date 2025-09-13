@@ -3,5 +3,8 @@
   "slug": "embipos-pos",
   "android": {
     "package": "com.anonymous.embipospos"
-  }
+  },
+  "plugins": [
+    "expo-secure-store"
+  ]
 }

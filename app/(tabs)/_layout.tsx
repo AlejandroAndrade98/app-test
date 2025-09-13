@@ -11,29 +11,29 @@ export default function Layout() {
   const scheme = useColorScheme();
   const theme = scheme === "dark" ? darkTheme : lightTheme;
 
-  // 🔧 Parche inmediato para Web: inyecta CSS global para apagar el “blanco”
-  useEffect(() => {
-    if (Platform.OS !== "web") return;
-    const style = document.createElement("style");
-    style.setAttribute("data-embipos", "fix-tabs-bg");
-    style.innerHTML = `
-      html, body, #root { height: 100%; background: #0B1220; }
-      #root > div, #root > div > div { min-height: 100%; background: #0B1220; }
-      *[style*="background-color: rgb(242, 242, 242)"],
-      *[style*="background-color: rgb(216, 216, 216)"],
-      *[style*="background: rgb(242, 242, 242)"],
-      *[style*="background: rgb(216, 216, 216)"] {
-        background-color: #0B1220 !important; background: #0B1220 !important;
-      }
-      *:where([style*="position: fixed"][style*="bottom: 0"]) {
-        background: transparent !important; box-shadow: none !important;
-      }
-      [role="tablist"], [role="tablist"] * { background: transparent !important; }
-      *[style*="box-shadow"][style*="-2px"] { background: transparent !important; box-shadow: none !important; }
-    `;
-    document.head.appendChild(style);
-    return () => style.remove();
-  }, []);
+  // // 🔧 Parche inmediato para Web: inyecta CSS global para apagar el “blanco”
+  // useEffect(() => {
+  //   if (Platform.OS !== "web") return;
+  //   const style = document.createElement("style");
+  //   style.setAttribute("data-embipos", "fix-tabs-bg");
+  //   style.innerHTML = `
+  //     html, body, #root { height: 100%; background: #0B1220; }
+  //     #root > div, #root > div > div { min-height: 100%; background: #0B1220; }
+  //     *[style*="background-color: rgb(242, 242, 242)"],
+  //     *[style*="background-color: rgb(216, 216, 216)"],
+  //     *[style*="background: rgb(242, 242, 242)"],
+  //     *[style*="background: rgb(216, 216, 216)"] {
+  //       background-color: #0B1220 !important; background: #0B1220 !important;
+  //     }
+  //     *:where([style*="position: fixed"][style*="bottom: 0"]) {
+  //       background: transparent !important; box-shadow: none !important;
+  //     }
+  //     [role="tablist"], [role="tablist"] * { background: transparent !important; }
+  //     *[style*="box-shadow"][style*="-2px"] { background: transparent !important; box-shadow: none !important; }
+  //   `;
+  //   document.head.appendChild(style);
+  //   return () => style.remove();
+  // }, []);
 
   const baseOptions: BottomTabNavigationOptions = {
     headerShown: false,
