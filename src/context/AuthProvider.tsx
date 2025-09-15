@@ -1,17 +1,18 @@
+// AuthProvider.tsx
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
-import { login as apiLogin } from "@/services/auth";
-import { getAccessToken } from "@/services/http";
+import { login as apiLogin, type Me as User } from "@/services/auth"; // <- usa el tipo Me
+import { setAccessToken } from "@/services/http"; // opcional, si quieres setear aquí también
 
-export type User = { id: string | number; name: string; email: string; role: "leader" | "collab" | "admin" | "cashier" };
 export type AuthState = { user: User | null; token: string | null; loading: boolean };
 
 type AuthContextType = {
   user: User | null;
   token: string | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  // 👇 ahora devuelve User
+  signIn: (email: string, password: string) => Promise<User>;
   signOut: () => Promise<void>;
   refreshFromStorage: () => Promise<void>;
 };
@@ -37,14 +38,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (Platform.OS === "web") {
       return {
         token: localStorage.getItem("auth_token"),
-        user: (() => { const s = localStorage.getItem("auth_user"); return s ? JSON.parse(s) : null; })(),
+        user: (() => {
+          const s = localStorage.getItem("auth_user");
+          return s ? (JSON.parse(s) as User) : null;
+        })(),
       };
     } else {
       const [t, u] = await Promise.all([
         SecureStore.getItemAsync("auth_token"),
         SecureStore.getItemAsync("auth_user"),
       ]);
-      return { token: t ?? null, user: u ? JSON.parse(u) : null };
+      return { token: t ?? null, user: u ? (JSON.parse(u) as User) : null };
     }
   };
 
@@ -57,16 +61,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
-    try {
-      const user = await apiLogin(email, password);        // guarda token en localStorage vía setAccessToken
-      const token = getAccessToken() ?? "";
-      await persist(token, user);
-      setState({ token, user, loading: false });
-    } catch (e) {
-      console.error("SIGNIN ERROR", e);
-      throw e;
-    }
+  // 👇 devuelve el usuario
+  const signIn = async (email: string, password: string): Promise<User> => {
+    const { token, user } = await apiLogin(email, password); // services/auth ya hace el POST
+    await setAccessToken(token); // opcional si quieres sincronizar aquí también
+    await persist(token, user);
+    setState({ token, user, loading: false });
+    return user;
   };
 
   const signOut = async () => {

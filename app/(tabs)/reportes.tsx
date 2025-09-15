@@ -10,7 +10,7 @@ import {
   useColorScheme,
 } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
-import { fetchReportToday } from "../../services/api"; // ajusta si tu path real es distinto
+import { fetchReportToday } from "@/services/reports"; // alias @ -> src
 
 type PaymentRow = { paymentMethod: string; total: number };
 type Report = {

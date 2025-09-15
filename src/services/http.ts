@@ -1,18 +1,52 @@
+// src/services/http.ts
 import axios from "axios";
 import { API_BASE } from "@/config/api";
 import * as SecureStore from "expo-secure-store";
 
-const ACCESS_KEY = "embipos:access_token";
 
-export function getAccessToken() {
-  return typeof localStorage !== "undefined"
-    ? localStorage.getItem(ACCESS_KEY)
-    : null;
+
+
+const ACCESS_KEY = "embipos:access_token"; // <-- misma key en todos lados
+
+let memToken: string | null = null;
+
+export function getAccessToken(): string | null {
+  if (memToken) return memToken;
+  try {
+    if (typeof localStorage !== "undefined") {
+      const t = localStorage.getItem(ACCESS_KEY);
+      if (t) memToken = t;
+      return t;
+    }
+  } catch {}
+  return null;
 }
-export function setAccessToken(token: string | null) {
-  if (typeof localStorage === "undefined") return;
-  if (token) localStorage.setItem(ACCESS_KEY, token);
-  else localStorage.removeItem(ACCESS_KEY);
+
+export async function getAccessTokenAsync(): Promise<string | null> {
+  // Web primero (sin await), luego nativo
+  const t = getAccessToken();
+  if (t) return t;
+  try {
+    const n = await SecureStore.getItemAsync(ACCESS_KEY);
+    if (n) memToken = n;
+    return n ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function setAccessToken(token: string | null) {
+  memToken = token ?? null;
+  try {
+    if (typeof localStorage !== "undefined") {
+      if (token) localStorage.setItem(ACCESS_KEY, token);
+      else localStorage.removeItem(ACCESS_KEY);
+    }
+  } catch {}
+  try {
+    if (token) await SecureStore.setItemAsync(ACCESS_KEY, token);
+    else await SecureStore.deleteItemAsync(ACCESS_KEY);
+  } catch {}
 }
 
 export const http = axios.create({
@@ -22,13 +56,16 @@ export const http = axios.create({
 
 // Adjunta Authorization si hay token
 http.interceptors.request.use(async (config) => {
-  let t = getAccessToken();
-  if (!t) {
-    // en nativo, usa SecureStore
-    try { t = await SecureStore.getItemAsync("auth_token"); } catch {}
+  const t = await getAccessTokenAsync();
+  if (t) {
+    config.headers = config.headers ?? {};
+    (config.headers as any).Authorization = `Bearer ${t}`;
   }
-  if (t) config.headers.Authorization = `Bearer ${t}`;
   return config;
 });
 
-// (opcional) aquí pondrías el interceptor de /auth/refresh si lo usas
+// (Opcional) refresco automático si implementas /auth/refresh en el backend
+// http.interceptors.response.use(undefined, async (error) => { ... });
+
+
+export default http;

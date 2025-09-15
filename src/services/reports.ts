@@ -1,5 +1,5 @@
 // src/services/reports.ts
-import { http } from "../services/http";
+import { http } from "./http";
 import {
   DailyReportSchema,
   RangeReportSchema,
@@ -26,19 +26,30 @@ async function getWithFallback<T>(paths: string[], params?: Record<string, any>)
 }
 
 export async function getDailyReport(date?: string): Promise<DailyReport> {
-  if (__DEV__) console.debug("[reports] GET /api|/reports/daily", date ? { date } : {});
   const raw = await getWithFallback<any>(
-    ["/api/reports/daily", "/reports/daily"],
+    ["/reports/daily"],                      // ✅ este existe
     date ? { date } : undefined
   );
   return DailyReportSchema.parse(raw);
 }
 
 export async function getRangeReport(from: string, to: string): Promise<RangeReport> {
-  if (__DEV__) console.debug("[reports] GET /api|/reports/range", { from, to });
   const raw = await getWithFallback<any>(
-    ["/api/reports/range", "/reports/range"],
+    ["/reports/range"],                      // ✅ este existe
     { from, to }
   );
   return RangeReportSchema.parse(raw);
+}
+
+export async function getMonthlyReport(yyyyMm: string) {
+  const [y, m] = yyyyMm.split("-");
+  const from = `${y}-${m}-01`;
+  const last = new Date(Number(y), Number(m), 0).getDate();
+  const to = `${y}-${m}-${String(last).padStart(2, "0")}`;
+  return getRangeReport(from, to);
+}
+
+export async function fetchReportToday() {
+  const today = new Date().toISOString().slice(0, 10);
+  return getDailyReport(today);
 }

@@ -1,14 +1,15 @@
-import { http } from './http';
-import { USE_MOCK } from '../config/api';
-import { createSaleMock } from '../mocks/sales.mock';
-import { SaleCreateInput } from '../types';
+// src/services/sales.ts
+import { http } from "@/services/http";
+import { USE_MOCK } from "@/config/api";
+import type { SaleCreateInput } from "@/types";
 
-/**
- * Crear una venta nueva.
- */
-export async function createSale(payload: SaleCreateInput) {
-  if (USE_MOCK) return createSaleMock();
+export type CreateSaleResponse = { saleId: number } | unknown;
 
-  const { data } = await http.post('/sales', payload);
+/** Crear una venta */
+export async function createSale(payload: SaleCreateInput): Promise<CreateSaleResponse> {
+  if (USE_MOCK) {
+    return { saleId: Math.floor(Math.random() * 10000) };
+  }
+  const { data } = await http.post("/sales", payload);
   return data;
 }

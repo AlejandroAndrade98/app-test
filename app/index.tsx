@@ -1,10 +1,32 @@
 // app/index.tsx
 import { Redirect } from "expo-router";
+import { View, ActivityIndicator } from "react-native";
+import { useEffect } from "react";
+import { useAuth } from "../src/context/AuthProvider";
 
 export default function Index() {
-  // Si quieres que abra la pestaña Venta:
-  return <Redirect href="/venta" />;
+  const { user, init, loading } = useAuth() as any;
 
-  // Si quieres que abra el index dentro de tabs:
-  // return <Redirect href="/" />;
+  // Si tienes un init() que hidrata desde el token, lánzalo al montar
+  useEffect(() => { init?.(); }, []);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
+  if (!user) return <Redirect href="/auth/login" />;
+
+  return (
+    <Redirect
+      href={
+        user.role === "admin" || user.role === "leader"
+          ? "/leader/dashboard"
+          : "/venta"
+      }
+    />
+  );
 }

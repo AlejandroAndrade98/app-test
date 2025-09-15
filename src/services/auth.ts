@@ -1,20 +1,31 @@
-import { http, setAccessToken } from "@/services/http";
+// src/services/auth.ts
+import http, { setAccessToken } from "@/services/http";
 
-export type Me = { id: number; email: string; name: string; role: "admin" | "leader" | "collab" | "cashier" };
+export type Me = {
+  id: number;
+  email: string;
+  name: string;
+  role: "admin" | "leader" | "collab" | "cashier";
+};
 
-export async function login(email: string, password: string) {
-  const { data } = await http.post("/auth/login", { email, password });
-  // ⬇️ usa 'token' (no 'accessToken')
-  setAccessToken(data.token);
-  return data.user as Me;
+type LoginResp = {
+  token: string;            // tu backend devuelve 'token'
+  refreshToken?: string;    // si lo usas
+  user: Me;
+};
+
+export async function login(email: string, password: string): Promise<LoginResp> {
+  const { data } = await http.post<LoginResp>("/auth/login", { email, password });
+  await setAccessToken(data.token);               // ⬅️ mejor con await
+  return data;                                    // si prefieres, puedes return data.user
 }
 
 export async function logout() {
   try { await http.post("/auth/logout"); } catch {}
-  setAccessToken(null);
+  await setAccessToken(null);                     // ⬅️ también con await
 }
 
-export async function fetchMe() {
-  const { data } = await http.get("/auth/me");
-  return data as Me;
+export async function fetchMe(): Promise<Me> {
+  const { data } = await http.get<Me>("/auth/me");
+  return data;
 }

@@ -1,12 +1,13 @@
+// app/(auth)/login.tsx
 import { useState } from "react";
 import { View, Text, TextInput, Button, ActivityIndicator } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useAuth } from "../../src/context/AuthProvider";
 
 export default function LoginScreen() {
-  const { signIn  } = useAuth();
+  const { signIn } = useAuth();
   const router = useRouter();
-  const params = useLocalSearchParams(); // por si mandas ?from=/productos
+  const params = useLocalSearchParams();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,9 +18,15 @@ export default function LoginScreen() {
     setLoading(true);
     setError(null);
     try {
-      await signIn(email, password);
-      const to = (params?.from as string) || "/productos";
-      router.replace(to);
+      const user = await signIn(email, password); // <-- ahora devuelve el usuario
+      // Decide home por rol
+      const target =
+        user.role === "admin" || user.role === "leader"
+          ? "/leader/dashboard"
+          : "/venta"; // o la ruta del cajero/colaborador
+      // Si venías con ?from=/algo, puedes respetarlo (opcional)
+      const from = (params?.from as string) || target;
+      router.replace(from);
     } catch (e: any) {
       setError(e?.response?.data?.error ?? "Credenciales inválidas");
     } finally {
@@ -49,12 +56,7 @@ export default function LoginScreen() {
       />
 
       {error && <Text style={{ color: "tomato" }}>{error}</Text>}
-
-      {loading ? (
-        <ActivityIndicator />
-      ) : (
-        <Button title="Entrar" onPress={onSubmit} />
-      )}
+      {loading ? <ActivityIndicator /> : <Button title="Entrar" onPress={onSubmit} />}
     </View>
   );
 }

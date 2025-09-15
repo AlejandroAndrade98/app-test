@@ -15,7 +15,8 @@ import {
   Platform,
 } from "react-native";
 import { useCart } from "../../store/cart";
-import { fetchProducts, createSale } from "../../services/api";
+import { fetchProducts } from "@/services/products";
+import { createSale } from "@/services/sales";
 
 type Product = {
   id: string | number;
